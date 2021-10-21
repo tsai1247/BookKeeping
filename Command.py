@@ -101,11 +101,17 @@ def add(update, bot):
             try:
                 debtor = ('@' + update.message.from_user.username)
             except:
-                debtor = ('@' + update.message.from_user.full_name)
+                debtor = (update.message.from_user.full_name)
             
         text = removeSpace('欠'.join(text.split('欠')[1:]))
         try:
             creditor, content, val = text.split(' ')
+            if '我' in debtor:
+                try:
+                    creditor = ('@' + update.message.from_user.username)
+                except:
+                    decreditortor = (update.message.from_user.full_name)
+            
             val = int(val)
             print(creditor, content, val)
         except:
