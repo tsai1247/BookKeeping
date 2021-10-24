@@ -25,6 +25,8 @@ def main():
     updater.dispatcher.add_handler(CommandHandler('undo', undo))
 
     updater.dispatcher.add_handler(CommandHandler('add', add))
+    updater.dispatcher.add_handler(CommandHandler('mkdir', mkdir))
+    updater.dispatcher.add_handler(CommandHandler('rmdir', rmdir))
     
 
     # 備份與還原

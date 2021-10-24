@@ -32,12 +32,22 @@ def cd(update, bot):
         text = text[1]
     else:
         text = ''
-    map_charroom_folder.update({chat_id: text})
+        
+    sql = sqlite3.connect('Database.db')
+    cur = sql.cursor()
 
-    if text == '':
+    cur.execute("Select Count(*) from Folder where chatroomid = {0} and folder = '{1}'".format(chat_id, text))
+    result = cur.fetchone()[0]
+    if  result != 0:
+        map_charroom_folder.update({chat_id: text})
+        Send(update, '切換至帳本 {0}'.format(text))
+    elif text == '' or text == '..':
+        map_charroom_folder.update({chat_id: text})
         Send(update, '切換至 帳本列表')
     else:
-        Send(update, '切換至帳本 {0}'.format(text))
+        Send(update, '帳本 {0} 不存在'.format(text))
+    cur.close()
+    sql.close()
 
 def ls(update, bot):
     chat_id = update.message.chat_id
@@ -45,12 +55,15 @@ def ls(update, bot):
     if chat_id not in map_charroom_folder or map_charroom_folder[chat_id]=='':
         sql = sqlite3.connect('Database.db')
         cur = sql.cursor()
-        cur.execute('Select folder from Data where chatroomid = {0}'.format(chat_id))
+        cur.execute('Select folder from Folder where chatroomid = {0}'.format(chat_id))
         data = cur.fetchall()
         if len(data) == 0:
             Send(update, '目前沒有帳本')
         else:
-            Send(update, '目前帳本:\n'+ '\n'.join(data))
+            ret = '目前有的帳本:\n'
+            for i in data:
+                ret += i[0] + '\n'
+            Send(update, ret)
     else:
         sql = sqlite3.connect('Database.db')
         cur = sql.cursor()
@@ -77,6 +90,45 @@ def ls(update, bot):
             for i in data:
                 ret += '{0} 欠 {1} {3} {2}元\n'.format(i[0], i[1], i[2], i[3])
             Send(update, ret)
+
+def mkdir(update, bot):
+    chat_id = update.message.chat_id
+    text = update.message.text.split(' ')[1]
+
+    sql = sqlite3.connect('Database.db')
+    cur = sql.cursor()
+
+    cur.execute("Select Count(*) from Folder where chatroomid = {0} and folder = '{1}'".format(chat_id, text))
+    if cur.fetchone()[0] != 0:
+        Send(update, '帳本 {0} 已存在'.format(text) )
+    else:
+        cur.execute("Insert into Folder values({0}, '{1}')".format(chat_id, text))
+        sql.commit()
+        Send(update, "新增帳本 {0}".format(text))
+
+    cur.close()
+    sql.close()
+
+
+def rmdir(update, bot):
+    chat_id = update.message.chat_id
+    text = update.message.text.split(' ')[1]
+
+    sql = sqlite3.connect('Database.db')
+    cur = sql.cursor()
+
+    cur.execute("Select Count(*) from Folder where chatroomid = {0} and folder = '{1}'".format(chat_id, text))
+    if cur.fetchone()[0] != 0:
+        cur.execute("Delete from Folder where chatroomid = {0} and folder = '{1}'".format(chat_id, text))
+        cur.execute("Delete from Data where chatroomid = {0} and folder = '{1}'".format(chat_id, text))
+        sql.commit()
+        Send(update, "刪除帳本 {0}".format(text))
+    else:
+        Send(update, '帳本 {0} 不存在'.format(text) )
+        
+    cur.close()
+    sql.close()
+    pass
 
 def sortList(data):
     return data
