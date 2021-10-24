@@ -42,7 +42,7 @@ def cd(update, bot):
         map_charroom_folder.update({chat_id: text})
         Send(update, '切換至帳本 {0}'.format(text))
     elif text == '' or text == '..':
-        map_charroom_folder.update({chat_id: text})
+        map_charroom_folder.update({chat_id: ''})
         Send(update, '切換至 帳本列表')
     else:
         Send(update, '帳本 {0} 不存在'.format(text))
@@ -136,7 +136,7 @@ def sortList(data):
 def add(update, bot):
     chat_id = update.message.chat_id
     folder = ''
-    if chat_id in map_charroom_folder:
+    if chat_id in map_charroom_folder and map_charroom_folder[chat_id] != '':
         folder = pureString(map_charroom_folder[chat_id])
     else:
         Reply(update, '請先切換帳本(/cd name)')
